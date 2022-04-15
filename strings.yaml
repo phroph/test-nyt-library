@@ -1,8 +1,8 @@
 branding:
-  name: Phil's Moon Miners Library
-  org: Phil's Cheese Mining Conglomerate LLC.
+  name: Phils Moon Miners Library
+  org: Phils Cheese Mining Conglomerate LLC.
   orgDomain: moonchese.com
-  prettyName: Phil's Moon Miners Library
+  prettyName: Phils Moon Miners Library
   favicon: /assets/images/library.ico
 
 landing:
