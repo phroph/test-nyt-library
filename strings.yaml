@@ -1,0 +1,28 @@
+branding:
+  name: Phil's Moon Miners Library
+  org: Phil's Cheese Mining Conglomerate LLC.
+  orgDomain: moonchese.com
+  prettyName: Phil's Moon Miners Library
+  favicon: /assets/images/library.ico
+
+landing:
+  tagline: A simple documentation site, built from cheese in Google Docs.
+  viewAll: View All Cheeses
+  quickLink: <a href="/get-started">Get cheesed</a>.
+
+footer:
+  helpText: For help contributing or to report a cheese, consult <a href="https://github.com/nytimes/library">the Library GitHub repository</a>.
+  defaultEmail: phuff@evisit.com
+
+search:
+  placeholder: What do you want to know about Cheese??
+  results:
+    none:
+      suggestion: To request a new page, submit <a href="https://github.com/nytimes/library">a CR on GitHub</a>.
+
+# errors
+error:
+  404:
+    meesage: "<p>Weird, we couldn't find that cheese. Please try again later!</p>"
+  403:
+    message: "<p>For this Cheese site, we've disabled the final step of the Move File workflow. Normally, this request would succeed and you'd be taken to the new url for your page.</p>"
