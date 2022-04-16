@@ -4,6 +4,7 @@ const passport = require('passport')
 const session = require('express-session')
 const crypto = require('crypto')
 const GoogleStrategy = require('passport-google-oauth20')
+const {google} = require('googleapis')
 const SlackStrategy = require('passport-slack-oauth2').Strategy
 
 const log = require('./logger')
@@ -11,7 +12,6 @@ const {stringTemplate: template} = require('./utils')
 
 const router = require('express-promise-router')()
 const domains = new Set(process.env.APPROVED_DOMAINS.split(/,\s?/g))
-const users = new Set(process.env.APPROVED_USERS.split(/,\s?/g))
 
 const authStrategies = ['google', 'Slack']
 let authStrategy = process.env.OAUTH_STRATEGY
@@ -44,7 +44,39 @@ if (isSlackOauth) {
     callbackURL,
     userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo',
     passReqToCallback: true
-  }, (request, accessToken, refreshToken, profile, done) => done(null, profile)))
+  }, (request, accessToken, refreshToken, profile, done) => {
+    if (process.env.DRIVE_TYPE === 'folder') {
+      const url = 'https://www.googleapis.com/drive/v3/files/' + process.env.DRIVE_ID + '/permissions'
+      request.get(url, {
+        auth: {
+          bearer: accessToken 
+        }
+      }, (error, response, body) => {
+        if (error) {
+          profile.hasAccess = false
+        } else {
+          profile.hasAccess = JSON.parse(response.body).permissions.length > 0
+        }
+        return done(null, profile)
+      })
+    }
+    else {
+      const url = 'https://www.googleapis.com/drive/v3/drives'
+      request.get(url, {
+        auth: {
+          bearer: accessToken
+        }
+      }, (error, response, body) => {
+        if (error) {
+          profile.hasAccess = false
+          return done(null, profile)
+        } else {
+          profile.hasAccess = JSON.parse(response.body).drives.filter(drive => drive.id === process.env.DRIVE_ID).length > 0 
+          return done(null, profile)
+        }
+      })
+    }
+  }
 }
 
 const md5 = (data) => crypto.createHash('md5').update(data).digest('hex')
@@ -66,7 +98,8 @@ passport.deserializeUser((obj, done) => done(null, obj))
 const googleLoginOptions = {
   scope: [
     'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile'
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/drive.readonly'
   ],
   prompt: 'select_account'
 }
@@ -102,20 +135,14 @@ router.use((req, res, next) => {
 function isAuthorized(user) {
   const [{value: userEmail = ''} = {}] = user.emails || []
   const [userDomain] = userEmail.split('@').slice(-1)
-  const checkApprovedEmail = () => {
-    const usersArray = Array.from(users)
-    for (const user of usersArray) {
-      if (userEmail === user) return true 
-    }
-  }
-  const checkRegexEmail = () => {
+  const checkRegexDomain = () => {
     const domainsArray = Array.from(domains)
     for (const domain of domainsArray) {
       if (userDomain.match(domain)) return true
     }
   }
-  // check access
-  return domains.has(userDomain) || domains.has(userEmail) || checkRegexEmail()
+  
+  return user.hasAccess && (domains.has(userDomain) || domains.has(userEmail))
 }
 
 function setUserInfo(req) {
