@@ -1,0 +1,32 @@
+steps:
+  - name: gcr.io/cloud-builders/git
+    args:
+      - '-c'
+      - >-
+        git clone "https://github.com/nytimes/library.git" && cd library && mv
+        ../.env .env && sed -i 's/"node": ">=10.x"/"node": "10.x"/g'
+        package.json && sed -i 's/%%ACCESS_JSON%%/$$ACCESS_JSON/g' .env && sed
+        -i 's/%%CLIENT_SECRET/$$CLIENT_SECRET/g' .env
+    entrypoint: bash
+    secretEnv:
+      - ACCESS_JSON
+      - CLIENT_SECRET
+  - name: node
+    args:
+      - '-c'
+      - cd library && npm install
+    entrypoint: bash
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    args:
+      - '-c'
+      - >-
+        cd library && gcloud config set app/cloud_build_timeout 1600 && gcloud
+        app deploy
+    entrypoint: bash
+timeout: 1600s
+availableSecrets:
+  secretManager:
+    - versionName: projects/925975218883/secrets/library-access-json/versions/1
+      env: ACCESS_JSON
+    - versionName: projects/925975218883/secrets/library-client-secret/versions/1
+      env: CLIENT_SECRET
