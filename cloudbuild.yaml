@@ -3,10 +3,8 @@ steps:
     args:
       - '-c'
       - >-
-        git clone "https://github.com/nytimes/library.git" && cd library && mv ../.env .env && echo $$ESCAPED_ACCESS_JSON && sed -i "s/ACCESSJSON/$$ESCAPED_ACCESS_JSON/g" .env &&  sed -i "s/CLIENTSECRET/$$CLIENT_SECRET/g" .env && cat .env
+        git clone "https://github.com/nytimes/library.git" && cd library && mv ../.env .env && set ESCAPED_ACCESS_JSON=echo $$ACCESS_JSON | sed 's/[]\/$*.^[]/\\&/g' && echo $$ESCAPED_ACCESS_JSON && sed -i "s/ACCESSJSON/$$ESCAPED_ACCESS_JSON/g" .env &&  sed -i "s/CLIENTSECRET/$$CLIENT_SECRET/g" .env && cat .env
     entrypoint: bash
-    env:
-      - ESCAPED_ACCESS_JSON=echo $$ACCESS_JSON | sed 's/[]\/$*.^[]/\\&/g'
     secretEnv:
       - ACCESS_JSON
       - CLIENT_SECRET
