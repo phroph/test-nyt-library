@@ -3,12 +3,13 @@ steps:
     args:
       - '-c'
       - >-
-        git clone "https://github.com/nytimes/library.git" && cd library && mv ../.env .env && perl -i -p -e 's/ACCESSJSON/$$ENV{ACCESS_JSON}/g' .env && sed -i "s/CLIENTSECRET/$$CLIENT_SECRET/g" .env && sed -i "s/GITHUBSECRET/$$GITHUB_SECRET/g" .env && cat .env
+        git clone "https://github.com/nytimes/library.git" && cd library && mv ../.env .env && perl -i -p -e 's/ACCESSJSON/$$ENV{ACCESS_JSON}/g' .env && sed -i "s/CLIENTSECRET/$$CLIENT_SECRET/g" .env && sed -i "s/GITHUBSECRET/$$GITHUB_SECRET/g" .env && sed -i "s/SESSIONSECRET/$$SESSION_SECRET/g" .env && cat .env
     entrypoint: bash
     secretEnv:
       - ACCESS_JSON
       - CLIENT_SECRET
       - GITHUB_SECRET
+      - SESSION_SECRET
   - name: node
     args:
       - '-c'
@@ -30,3 +31,5 @@ availableSecrets:
       env: CLIENT_SECRET
     - versionName: projects/925975218883/secrets/github-customization-secret/versions/1
       env: GITHUB_SECRET
+    - versionName: projects/925975218883/secrets/session-secret/versions/1
+      env: SESSION_SECRET
