@@ -6,7 +6,7 @@ steps:
         git clone "https://github.com/nytimes/library.git" && cd library && mv
         ../.env .env && sed -i 's/"node": ">=10.x"/"node": "10.x"/g'
         package.json && sed -i 's/%%ACCESS_JSON%%/$$ACCESS_JSON/g' .env && sed
-        -i 's/%%CLIENT_SECRET/$$CLIENT_SECRET/g' .env
+        -i 's/%%CLIENT_SECRET%%/$$CLIENT_SECRET/g' .env
     entrypoint: bash
     secretEnv:
       - ACCESS_JSON
