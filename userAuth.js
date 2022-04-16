@@ -17,6 +17,7 @@ let authStrategy = process.env.OAUTH_STRATEGY
 
 const callbackURL = process.env.REDIRECT_URL || '/auth/redirect'
 if (!authStrategies.includes(authStrategy)) {
+  log.info('Bing:-' + authStrategy + '-:Bong')
   log.warn(`Invalid oauth strategy ${authStrategy} specific, defaulting to google auth`)
   authStrategy = 'google'
 }
@@ -43,6 +44,7 @@ if (isSlackOauth) {
     userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo',
     passReqToCallback: true
   }, (request, accessToken, refreshToken, profile, done) => {
+    log.info("Ping")
     if (process.env.DRIVE_TYPE === 'folder') {
       const url = 'https://www.googleapis.com/drive/v3/files/' + process.env.DRIVE_ID + '/permissions'
       request.get(url, {
@@ -52,9 +54,9 @@ if (isSlackOauth) {
       }, (error, response, body) => {
         if (error) {
           profile.hasAccess = false
-          console.log(error)
+          log.error(error)
         } else {
-          console.log('Access validated')
+          log.info('Access validated')
           profile.hasAccess = JSON.parse(response.body).permissions.length > 0
         }
         return done(null, profile)
@@ -68,11 +70,11 @@ if (isSlackOauth) {
       }, (error, response, body) => {
         if (error) {
           profile.hasAccess = false
-          console.log(error)
+          log.error(error)
           return done(null, profile)
         } else {
           profile.hasAccess = JSON.parse(response.body).drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
-          console.log('Access validated')
+          log.info('Access validated')
           return done(null, profile)
         }
       })
@@ -125,11 +127,12 @@ router.use((req, res, next) => {
   }
 
   if (req.isAuthenticated() && !isAuthorized(passportUser)) {
-    console.log('Unauthorized!')
+    log.info('Unauthorized!')
     return next(Error('Unauthorized'))
   }
 
   log.info('User not authenticated')
+  log.info('Pong')
   req.session.authRedirect = req.path
   res.redirect('/login')
 })
@@ -138,7 +141,7 @@ function isAuthorized(user) {
   const [{value: userEmail = ''} = {}] = user.emails || []
   const [userDomain] = userEmail.split('@').slice(-1)
 
-  console.log('User Access:' + user.hasAccess)
+  log.info('User Access:' + user.hasAccess)
 
   return user.hasAccess && (domains.has(userDomain) || domains.has(userEmail))
 }
