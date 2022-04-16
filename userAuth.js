@@ -4,7 +4,6 @@ const passport = require('passport')
 const session = require('express-session')
 const crypto = require('crypto')
 const GoogleStrategy = require('passport-google-oauth20')
-const {google} = require('googleapis')
 const SlackStrategy = require('passport-slack-oauth2').Strategy
 
 const log = require('./logger')
@@ -34,8 +33,7 @@ if (isSlackOauth) {
   (accessToken, refreshToken, profile, done) => {
     // optionally persist user data into a database
     done(null, profile)
-  }
-  ))
+  }))
 } else {
   // default to google auth
   passport.use(new GoogleStrategy.Strategy({
@@ -49,20 +47,19 @@ if (isSlackOauth) {
       const url = 'https://www.googleapis.com/drive/v3/files/' + process.env.DRIVE_ID + '/permissions'
       request.get(url, {
         auth: {
-          bearer: accessToken 
+          bearer: accessToken
         }
       }, (error, response, body) => {
         if (error) {
           profile.hasAccess = false
           console.log(error)
         } else {
-          console.log("Access validated")
+          console.log('Access validated')
           profile.hasAccess = JSON.parse(response.body).permissions.length > 0
         }
         return done(null, profile)
       })
-    }
-    else {
+    } else {
       const url = 'https://www.googleapis.com/drive/v3/drives'
       request.get(url, {
         auth: {
@@ -74,13 +71,13 @@ if (isSlackOauth) {
           console.log(error)
           return done(null, profile)
         } else {
-          profile.hasAccess = JSON.parse(response.body).drives.filter(drive => drive.id === process.env.DRIVE_ID).length > 0 
-          console.log("Access validated")
+          profile.hasAccess = JSON.parse(response.body).drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
+          console.log('Access validated')
           return done(null, profile)
         }
       })
     }
-  }
+  }))
 }
 
 const md5 = (data) => crypto.createHash('md5').update(data).digest('hex')
@@ -128,7 +125,7 @@ router.use((req, res, next) => {
   }
 
   if (req.isAuthenticated() && !isAuthorized(passportUser)) {
-    console.log("Unauthorized!")
+    console.log('Unauthorized!')
     return next(Error('Unauthorized'))
   }
 
@@ -140,14 +137,9 @@ router.use((req, res, next) => {
 function isAuthorized(user) {
   const [{value: userEmail = ''} = {}] = user.emails || []
   const [userDomain] = userEmail.split('@').slice(-1)
-  const checkRegexDomain = () => {
-    const domainsArray = Array.from(domains)
-    for (const domain of domainsArray) {
-      if (userDomain.match(domain)) return true
-    }
-  }
-  console.log("User Access:" + user.hasAccess)
-  
+
+  console.log('User Access:' + user.hasAccess)
+
   return user.hasAccess && (domains.has(userDomain) || domains.has(userEmail))
 }
 
