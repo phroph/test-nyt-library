@@ -54,7 +54,9 @@ if (isSlackOauth) {
       }, (error, response, body) => {
         if (error) {
           profile.hasAccess = false
+          console.log(error)
         } else {
+          console.log("Access validated")
           profile.hasAccess = JSON.parse(response.body).permissions.length > 0
         }
         return done(null, profile)
@@ -69,9 +71,11 @@ if (isSlackOauth) {
       }, (error, response, body) => {
         if (error) {
           profile.hasAccess = false
+          console.log(error)
           return done(null, profile)
         } else {
           profile.hasAccess = JSON.parse(response.body).drives.filter(drive => drive.id === process.env.DRIVE_ID).length > 0 
+          console.log("Access validated")
           return done(null, profile)
         }
       })
@@ -124,6 +128,7 @@ router.use((req, res, next) => {
   }
 
   if (req.isAuthenticated() && !isAuthorized(passportUser)) {
+    console.log("Unauthorized!")
     return next(Error('Unauthorized'))
   }
 
@@ -141,6 +146,7 @@ function isAuthorized(user) {
       if (userDomain.match(domain)) return true
     }
   }
+  console.log("User Access:" + user.hasAccess)
   
   return user.hasAccess && (domains.has(userDomain) || domains.has(userEmail))
 }
