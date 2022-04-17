@@ -34,12 +34,12 @@ async function callback(request, accessToken, refreshToken, profile, done) {
     log.info("Folder")
     const permissions = await drive.permissions.list({fileId: process.env.DRIVE_ID})
     log.info(permissions)
-    profile.hasAccess = permissions.length > 0
+    profile.hasAccess = permissions.permissions.length > 0
   } else {
     log.info("Drive")
     const drives = await drive.drives.list()
     log.info(drives)
-    profile.hasAccess = drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
+    profile.hasAccess = drives.drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
   }
   return done(null, profile)
 }
