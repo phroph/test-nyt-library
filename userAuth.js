@@ -6,8 +6,8 @@ const crypto = require('crypto')
 const GoogleStrategy = require('passport-google-oauth20')
 const SlackStrategy = require('passport-slack-oauth2').Strategy
 
-const log = require('./logger')
-const {stringTemplate: template} = require('./utils')
+const log = require('../server/logger')
+const {stringTemplate: template} = require('../server/utils')
 
 const router = require('express-promise-router')()
 const domains = new Set(process.env.APPROVED_DOMAINS.split(/,\s?/g))
