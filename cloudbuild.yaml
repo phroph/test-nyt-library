@@ -10,11 +10,6 @@ steps:
       - CLIENT_SECRET
       - GITHUB_SECRET
       - SESSION_SECRET
-  - name: node
-    args:
-      - '-c'
-      - cd library && npm install
-    entrypoint: bash
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     args:
       - '-c'
