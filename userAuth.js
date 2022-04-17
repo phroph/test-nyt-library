@@ -24,19 +24,18 @@ if (!authStrategies.includes(authStrategy)) {
 }
 
 async function callback(request, accessToken, refreshToken, profile, done) {
-  log.info("Pong")
   const oauth2Client = new google.auth.OAuth2()
   oauth2Client.setCredentials({
     'access_token': accessToken
   });
   google.options({auth: oauth2Client})
   if (process.env.DRIVE_TYPE === 'folder') {
-    log.info("Folder")
+    log.info("Checking Folder Access")
     const permissions = await drive.permissions.list({fileId: process.env.DRIVE_ID})
     log.info(permissions.data)
     profile.hasAccess = permissions.data.permissions.length > 0
   } else {
-    log.info("Drive")
+    log.info("Checking Drive Access")
     const drives = await drive.drives.list()
     log.info(drives.data)
     profile.hasAccess = drives.data.drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
@@ -66,7 +65,6 @@ if (isSlackOauth) {
     userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo',
     passReqToCallback: true
   }, (request, accessToken, refreshToken, profile, done) => {
-    log.info("Ping")
     callback(request, accessToken, refreshToken, profile, done)
   }))
 }
@@ -128,8 +126,6 @@ router.use((req, res, next) => {
 function isAuthorized(user) {
   const [{value: userEmail = ''} = {}] = user.emails || []
   const [userDomain] = userEmail.split('@').slice(-1)
-
-  log.info('User Access:' + user.hasAccess)
 
   return user.hasAccess && (domains.has(userDomain) || domains.has(userEmail))
 }
