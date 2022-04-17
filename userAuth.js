@@ -32,14 +32,14 @@ async function callback(request, accessToken, refreshToken, profile, done) {
   google.options({auth: oauth2Client})
   if (process.env.DRIVE_TYPE === 'folder') {
     log.info("Folder")
-    const permissions = await drive.permissions.list({fileId: process.env.DRIVE_ID}).data
-    log.info(permissions)
-    profile.hasAccess = permissions.permissions.length > 0
+    const permissions = await drive.permissions.list({fileId: process.env.DRIVE_ID})
+    log.info(permissions.data)
+    profile.hasAccess = permissions.data.permissions.length > 0
   } else {
     log.info("Drive")
-    const drives = await drive.drives.list().data
-    log.info(drives)
-    profile.hasAccess = drives.drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
+    const drives = await drive.drives.list()
+    log.info(drives.data)
+    profile.hasAccess = drives.data.drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
   }
   return done(null, profile)
 }
