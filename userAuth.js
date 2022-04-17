@@ -3,6 +3,8 @@
 const passport = require('passport')
 const session = require('express-session')
 const crypto = require('crypto')
+const {google} = require('googleapis');
+const drive = google.drive('v3');
 const GoogleStrategy = require('passport-google-oauth20')
 const SlackStrategy = require('passport-slack-oauth2').Strategy
 
@@ -17,7 +19,6 @@ let authStrategy = process.env.OAUTH_STRATEGY
 
 const callbackURL = process.env.REDIRECT_URL || '/auth/redirect'
 if (!authStrategies.includes(authStrategy)) {
-  log.info('Bing:-' + authStrategy + '-:Bong')
   log.warn(`Invalid oauth strategy ${authStrategy} specific, defaulting to google auth`)
   authStrategy = 'google'
 }
@@ -45,44 +46,25 @@ if (isSlackOauth) {
     passReqToCallback: true
   }, (request, accessToken, refreshToken, profile, done) => {
     log.info("Ping: " + process.env.DRIVE_TYPE)
+      
+    const oauth2Client = new google.auth.OAuth2()
+    oauth2Client.setCredentials({
+      'access_token': accessToken
+    });
+    const authClient = await oauth2Client.getClient()
+    google.options({auth: authClient})
     if (process.env.DRIVE_TYPE === 'folder') {
-      const url = 'https://www.googleapis.com/drive/v3/files/' + process.env.DRIVE_ID + '/permissions'
-      log.info("Starting request: " + url + ":" + accessToken)
-      request.get(url, {
-        auth: {
-          bearer: accessToken
-        }
-      }, (error, response, body) => {
-        log.info("Done request")
-        if (error) {
-          profile.hasAccess = false
-          log.error("Whomp1", error)
-        } else {
-          log.info('Access validated')
-          profile.hasAccess = JSON.parse(response.body).permissions.length > 0
-        }
-        return done(null, profile)
-      })
+      log.info("Folder")
+      const permissions = await drive.permissions.list({fileId: process.env.DRIVE_ID})
+      log.info(permissions)
+      profile.hasAccess = permissions.length > 0
     } else {
-      log.info("Ping2")
-      const url = 'https://www.googleapis.com/drive/v3/drives'
-      request.get(url, {
-        auth: {
-          bearer: accessToken
-        }
-      }, (error, response, body) => {
-        log.info("Done request 2")
-        if (error) {
-          profile.hasAccess = false
-          log.error("Whomp2", error)
-          return done(null, profile)
-        } else {
-          profile.hasAccess = JSON.parse(response.body).drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
-          log.info('Access validated')
-          return done(null, profile)
-        }
-      })
+      log.info("Drive")
+      const drives = await drive.drives.list()
+      log.info(drives)
+      profile.hasAccess = drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
     }
+    return done(null, profile)
   }))
 }
 
