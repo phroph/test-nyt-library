@@ -44,7 +44,7 @@ if (isSlackOauth) {
     userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo',
     passReqToCallback: true
   }, (request, accessToken, refreshToken, profile, done) => {
-    log.info("Ping")
+    log.info("Ping: " + process.env.DRIVE_TYPE)
     if (process.env.DRIVE_TYPE === 'folder') {
       const url = 'https://www.googleapis.com/drive/v3/files/' + process.env.DRIVE_ID + '/permissions'
       log.info("Starting request: " + url)
@@ -56,7 +56,7 @@ if (isSlackOauth) {
         log.info("Done request")
         if (error) {
           profile.hasAccess = false
-          log.error(error)
+          log.error("Whomp1", error)
         } else {
           log.info('Access validated')
           profile.hasAccess = JSON.parse(response.body).permissions.length > 0
@@ -64,15 +64,17 @@ if (isSlackOauth) {
         return done(null, profile)
       })
     } else {
+      log.info("Ping2")
       const url = 'https://www.googleapis.com/drive/v3/drives'
       request.get(url, {
         auth: {
           bearer: accessToken
         }
       }, (error, response, body) => {
+        log.info("Done request 2")
         if (error) {
           profile.hasAccess = false
-          log.error(error)
+          log.error("Whomp2", error)
           return done(null, profile)
         } else {
           profile.hasAccess = JSON.parse(response.body).drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
@@ -134,7 +136,6 @@ router.use((req, res, next) => {
   }
 
   log.info('User not authenticated')
-  log.info('Pong')
   req.session.authRedirect = req.path
   res.redirect('/login')
 })
