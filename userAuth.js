@@ -47,11 +47,13 @@ if (isSlackOauth) {
     log.info("Ping")
     if (process.env.DRIVE_TYPE === 'folder') {
       const url = 'https://www.googleapis.com/drive/v3/files/' + process.env.DRIVE_ID + '/permissions'
+      log.info("Starting request: " + url)
       request.get(url, {
         auth: {
           bearer: accessToken
         }
       }, (error, response, body) => {
+        log.info("Done request")
         if (error) {
           profile.hasAccess = false
           log.error(error)
