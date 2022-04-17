@@ -13,7 +13,7 @@ steps:
   - name: node
     args:
       - '-c'
-      - cd library && npm install && npm run gcp-build
+      - cd library && npm install && npm run gcp-build && ls -R custom
     entrypoint: bash
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     args:
