@@ -23,6 +23,28 @@ if (!authStrategies.includes(authStrategy)) {
   authStrategy = 'google'
 }
 
+async function callback(request, accessToken, refreshToken, profile, done) {
+  log.info("Pong")
+  const oauth2Client = new google.auth.OAuth2()
+  oauth2Client.setCredentials({
+    'access_token': accessToken
+  });
+  const authClient = await oauth2Client.getClient()
+  google.options({auth: authClient})
+  if (process.env.DRIVE_TYPE === 'folder') {
+    log.info("Folder")
+    const permissions = await drive.permissions.list({fileId: process.env.DRIVE_ID})
+    log.info(permissions)
+    profile.hasAccess = permissions.length > 0
+  } else {
+    log.info("Drive")
+    const drives = await drive.drives.list()
+    log.info(drives)
+    profile.hasAccess = drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
+  }
+  return done(null, profile)
+}
+
 const isSlackOauth = authStrategy === 'Slack'
 if (isSlackOauth) {
   passport.use(new SlackStrategy({
@@ -45,26 +67,8 @@ if (isSlackOauth) {
     userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo',
     passReqToCallback: true
   }, (request, accessToken, refreshToken, profile, done) => {
-    log.info("Ping: " + process.env.DRIVE_TYPE)
-      
-    const oauth2Client = new google.auth.OAuth2()
-    oauth2Client.setCredentials({
-      'access_token': accessToken
-    });
-    const authClient = await oauth2Client.getClient()
-    google.options({auth: authClient})
-    if (process.env.DRIVE_TYPE === 'folder') {
-      log.info("Folder")
-      const permissions = await drive.permissions.list({fileId: process.env.DRIVE_ID})
-      log.info(permissions)
-      profile.hasAccess = permissions.length > 0
-    } else {
-      log.info("Drive")
-      const drives = await drive.drives.list()
-      log.info(drives)
-      profile.hasAccess = drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
-    }
-    return done(null, profile)
+    log.info("Ping")
+    callback(request, accessToken, refreshToken, profile, done)
   }))
 }
 
