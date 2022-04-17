@@ -29,8 +29,7 @@ async function callback(request, accessToken, refreshToken, profile, done) {
   oauth2Client.setCredentials({
     'access_token': accessToken
   });
-  const authClient = await oauth2Client.getClient()
-  google.options({auth: authClient})
+  google.options({auth: oauth2Client})
   if (process.env.DRIVE_TYPE === 'folder') {
     log.info("Folder")
     const permissions = await drive.permissions.list({fileId: process.env.DRIVE_ID})
