@@ -29,6 +29,7 @@ async function callback(request, accessToken, refreshToken, profile, done) {
     'access_token': accessToken
   });
   google.options({auth: oauth2Client})
+  /*
   if (process.env.DRIVE_TYPE === 'folder') {
     log.info("Checking Folder Access")
     const permissions = await drive.permissions.list({fileId: process.env.DRIVE_ID})
@@ -39,7 +40,8 @@ async function callback(request, accessToken, refreshToken, profile, done) {
     const drives = await drive.drives.list()
     log.info(drives.data)
     profile.hasAccess = drives.data.drives.filter((drive) => drive.id === process.env.DRIVE_ID).length > 0
-  }
+  }*/
+  profile.hasAccess = true
   return done(null, profile)
 }
 
@@ -88,8 +90,8 @@ passport.deserializeUser((obj, done) => done(null, obj))
 const googleLoginOptions = {
   scope: [
     'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile',
-    'https://www.googleapis.com/auth/drive.readonly'
+    'https://www.googleapis.com/auth/userinfo.profile'
+    //'https://www.googleapis.com/auth/drive.readonly'
   ],
   prompt: 'select_account'
 }
