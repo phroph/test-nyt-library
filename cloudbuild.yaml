@@ -22,7 +22,7 @@ availableSecrets:
       env: ACCESS_JSON
     - versionName: projects/925975218883/secrets/library-client-secret/versions/1
       env: CLIENT_SECRET
-    - versionName: projects/925975218883/secrets/github-customization-secret/versions/1
+    - versionName: projects/925975218883/secrets/github-customization-secret/versions/2
       env: GITHUB_SECRET
     - versionName: projects/925975218883/secrets/session-secret/versions/1
       env: SESSION_SECRET
